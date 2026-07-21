@@ -79,7 +79,6 @@ export default function ReferralPerformance() {
                                             <td className="px-10 py-6">
                                                 <div className="space-y-1">
                                                     <p className="text-green-600 font-black">{r.commissionGenerated.toFixed(2)} R Yield</p>
-                                                    <p className="text-[8px] text-neutral-400">Volume: {r.lifetimeSpend?.toFixed(2) || 0} R</p>
                                                 </div>
                                             </td>
                                             <td className="px-10 py-6">

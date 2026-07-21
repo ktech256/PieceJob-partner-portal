@@ -15,7 +15,10 @@ export interface PartnerStats {
 export interface PartnerBalance {
   pending: number;
   available: number;
+  requested: number;
+  processing: number;
   paid: number;
+  lifetime: number;
 }
 
 export interface PartnerEarnings {
@@ -34,6 +37,14 @@ export interface PartnerData {
   stats: PartnerStats;
   balance: PartnerBalance;
   earnings?: PartnerEarnings;
+  bankingDetails?: {
+    bankName: string;
+    accountHolder: string;
+    accountNumber: string;
+    branchCode: string;
+    accountType: string;
+    swiftCode?: string;
+  };
   recentActivity?: any[];
   highlights?: {
     topReferral: {

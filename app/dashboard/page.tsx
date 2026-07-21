@@ -38,6 +38,7 @@ export default function PartnerDashboard() {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [router]);
 
@@ -136,7 +137,13 @@ export default function PartnerDashboard() {
                   <YieldChart />
                </div>
                <div className="space-y-6">
-                  <BalanceMatrix balance={data.balance} />
+                  <BalanceMatrix partner={data} onRefresh={() => {
+                      setLoading(true);
+                      api.get('/affiliate/dashboard').then(res => {
+                          setData(res.data.data);
+                          setLoading(false);
+                      });
+                  }} />
                   <div className="bg-neutral-50 rounded-[40px] p-10 border border-neutral-100 space-y-8">
                      <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-400 border-b border-neutral-200 pb-4">Signal Attribution</h4>
                      <div className="space-y-6">
