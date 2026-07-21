@@ -170,5 +170,3 @@ function AttributionItem({ label, value, color }: any) {
         </div>
     )
 }
-  );
-}
