@@ -26,12 +26,16 @@ const menuItems = [
   { icon: User, label: 'Profile', href: '/dashboard/profile' },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-80 border-r border-neutral-100 min-h-screen p-10 flex flex-col gap-12 bg-neutral-50/30">
-      <div className="flex items-center gap-3">
+    <aside className="w-[280px] md:w-80 border-r border-neutral-100 min-h-screen p-8 md:p-10 flex flex-col gap-10 md:gap-12 bg-white md:bg-neutral-50/30">
+      <div className="hidden md:flex items-center gap-3">
         <div className="w-10 h-10 bg-brand-customer-red rounded-xl flex items-center justify-center text-white font-black">PJ</div>
         <h2 className="text-xl font-black uppercase tracking-tighter italic">Partner<span className="text-brand-customer-red">Node</span></h2>
       </div>
@@ -43,6 +47,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
                 isActive

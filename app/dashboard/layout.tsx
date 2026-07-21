@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/dashboard/Sidebar';
+import { Menu, X } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -10,6 +11,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [authorized, setAuthorized] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,9 +31,38 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="flex min-h-screen bg-white text-neutral-900 font-sans">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto h-screen scrollbar-hide">
+    <div className="flex flex-col md:flex-row min-h-screen bg-white text-neutral-900 font-sans relative">
+      {/* MOBILE HEADER */}
+      <header className="md:hidden flex items-center justify-between p-6 border-b border-neutral-100 bg-white z-50 sticky top-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-brand-customer-red rounded-lg flex items-center justify-center text-white font-black text-xs">PJ</div>
+          <h2 className="text-sm font-black uppercase tracking-tighter italic">Partner<span className="text-brand-customer-red">Node</span></h2>
+        </div>
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 bg-neutral-50 rounded-xl text-neutral-900"
+        >
+          {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </header>
+
+      {/* OVERLAY */}
+      {isSidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR WRAPPER */}
+      <div className={`
+        fixed md:relative inset-y-0 left-0 z-50 transform transition-transform duration-300 md:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <Sidebar onClose={() => setIsSidebarOpen(false)} />
+      </div>
+
+      <main className="flex-1 overflow-y-auto h-screen scrollbar-hide w-full">
         {children}
       </main>
     </div>

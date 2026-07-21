@@ -10,7 +10,7 @@ interface BalanceMatrixProps {
 
 export default function BalanceMatrix({ balance }: BalanceMatrixProps) {
   return (
-    <div className="bg-neutral-50 rounded-[48px] p-12 space-y-8 border border-neutral-100">
+    <div className="bg-neutral-50 rounded-[32px] md:rounded-[48px] p-8 md:p-12 space-y-8 border border-neutral-100">
       <h3 className="text-xl font-black uppercase tracking-tight">Balance Matrix</h3>
       <div className="space-y-6">
         <BalanceItem label="Pending Rewards" value={`${balance.pending} R`} color="text-neutral-400" />
