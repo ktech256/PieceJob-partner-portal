@@ -35,4 +35,18 @@ export interface PartnerData {
   balance: PartnerBalance;
   earnings?: PartnerEarnings;
   recentActivity?: any[];
+  highlights?: {
+    topReferral: {
+        commission: number;
+        jobs: number;
+    } | null;
+    latestReferral: {
+        name: string;
+        date: string;
+    } | null;
+    latestCommission: {
+        amount: number;
+        date: string;
+    } | null;
+  };
 }
