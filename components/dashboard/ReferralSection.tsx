@@ -53,6 +53,7 @@ export default function ReferralSection({ referralCode }: ReferralSectionProps) 
 
       <QRCodeDialog
         url={referralLink}
+        partnerCode={referralCode}
         isOpen={showQR}
         onClose={() => setShowQR(false)}
       />

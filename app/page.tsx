@@ -68,6 +68,16 @@ export default function PartnerLogin() {
             </div>
           </div>
 
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => router.push('/forgot-password')}
+              className="text-[9px] font-black uppercase text-neutral-400 hover:text-black transition-colors"
+            >
+              Forgot Password?
+            </button>
+          </div>
+
           {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{error}</p>}
 
           <button

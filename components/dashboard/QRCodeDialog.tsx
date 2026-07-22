@@ -1,48 +1,56 @@
-import React, { useRef } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { X, Download } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
+import { X, Download, Loader2 } from 'lucide-react';
 
 interface QRCodeDialogProps {
   url: string;
+  partnerCode: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function QRCodeDialog({ url, isOpen, onClose }: QRCodeDialogProps) {
-  const qrRef = useRef<HTMLDivElement>(null);
+export default function QRCodeDialog({ url, partnerCode, isOpen, onClose }: QRCodeDialogProps) {
+  const [downloading, setDownloading] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen) return null;
 
-  const downloadQR = () => {
-    const svg = qrRef.current?.querySelector('svg');
-    if (!svg) return;
+  const downloadHDQR = async () => {
+    setDownloading(true);
+    try {
+      // Find the hidden canvas we will render for the HD version
+      const canvas = canvasRef.current?.querySelector('canvas');
+      if (!canvas) throw new Error('Canvas rendering engine not found');
 
-    // For better quality download, we use a canvas with higher resolution
-    const canvas = document.createElement('canvas');
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const img = new Image();
+      // Small delay to ensure rendering is complete if needed
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-    img.onload = () => {
-      // High resolution export (2000x2000)
-      canvas.width = 2000;
-      canvas.height = 2000;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, 2000, 2000);
+      const pngFile = canvas.toDataURL('image/png', 1.0);
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `PieceJob_QR_${partnerCode}.png`;
+      downloadLink.href = pngFile;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } catch (error) {
+      console.error('QR Export failed:', error);
+      alert('Failed to generate HD Asset. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
-        const pngFile = canvas.toDataURL('image/png');
-        const downloadLink = document.createElement('a');
-        downloadLink.download = 'piecejob-referral-qr.png';
-        downloadLink.href = pngFile;
-        downloadLink.click();
-      }
-    };
+  const logoSettings = {
+    src: "https://piecejob.co/assets/logos/piecejob-logo.png",
+    height: 48,
+    width: 48,
+    excavate: true,
+  };
 
-    // Add explicitly defined width/height to SVG for canvas conversion
-    const svgWithDimensions = svgData.replace('<svg', '<svg width="2000" height="2000"');
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgWithDimensions)));
+  const hdLogoSettings = {
+    ...logoSettings,
+    height: 400, // Scaled for 2048
+    width: 400,
   };
 
   return (
@@ -50,8 +58,8 @@ export default function QRCodeDialog({ url, isOpen, onClose }: QRCodeDialogProps
       <div className="bg-white rounded-[40px] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-8 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
           <div>
-            <h3 className="text-xl font-black uppercase tracking-tight">Referral Protocol QR</h3>
-            <p className="text-[10px] text-neutral-400 font-bold uppercase mt-1">Branded Acquisition Signal</p>
+            <h3 className="text-xl font-black uppercase tracking-tight italic">Protocol<span className="text-brand-customer-red">Asset</span></h3>
+            <p className="text-[10px] text-neutral-400 font-bold uppercase mt-1">HD Acquisition Signal Generator</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
             <X size={24} className="text-neutral-300" />
@@ -59,31 +67,51 @@ export default function QRCodeDialog({ url, isOpen, onClose }: QRCodeDialogProps
         </div>
 
         <div className="p-12 flex flex-col items-center gap-8">
-          <div ref={qrRef} className="p-8 bg-white border border-neutral-100 rounded-[32px] shadow-inner relative group">
+          {/* UI PREVIEW - SVG for crispness */}
+          <div className="p-8 bg-white border border-neutral-100 rounded-[32px] shadow-inner relative group">
             <QRCodeSVG
               value={url}
               size={240}
               level="H"
               includeMargin={false}
-              imageSettings={{
-                src: "https://piecejob.co/assets/logos/piecejob-logo.png",
-                x: undefined,
-                y: undefined,
-                height: 50,
-                width: 50,
-                excavate: true,
-              }}
+              imageSettings={logoSettings}
             />
           </div>
 
-          <div className="w-full space-y-3">
+          {/* HIDDEN HD RENDERER (2048x2048) */}
+          <div ref={canvasRef} className="hidden">
+            <QRCodeCanvas
+              value={url}
+              size={2048}
+              level="H"
+              includeMargin={true}
+              marginSize={2}
+              imageSettings={hdLogoSettings}
+            />
+          </div>
+
+          <div className="w-full space-y-4">
             <button
-              onClick={downloadQR}
-              className="w-full bg-neutral-900 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-black transition-all shadow-xl active:scale-95"
+              onClick={downloadHDQR}
+              disabled={downloading}
+              className="w-full bg-neutral-900 text-white h-16 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl active:scale-95 disabled:opacity-50"
             >
-              <Download size={16} /> Export High-Res PNG
+              {downloading ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                <Download size={18} />
+              )}
+              {downloading ? 'Encrypting HD Asset...' : 'Download HD Asset (2K PNG)'}
             </button>
-            <p className="text-[8px] text-center text-neutral-400 font-bold uppercase tracking-widest">CENTERED LOGO • HIGH SCAN RELIABILITY (LVL H)</p>
+
+            <div className="space-y-1">
+              <p className="text-[8px] text-center text-neutral-400 font-bold uppercase tracking-widest">
+                CENTERED LOGO • 2048px MASTER RESOLUTION
+              </p>
+              <p className="text-[7px] text-center text-neutral-300 font-bold uppercase tracking-widest">
+                SUITABLE FOR LARGE BANNERS & VEHICLE BRANDING
+              </p>
+            </div>
           </div>
         </div>
       </div>
