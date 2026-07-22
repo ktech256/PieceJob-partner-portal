@@ -12,6 +12,7 @@ export default function SettlementModal({ partner, onClose, onRefresh }: any) {
     const [success, setSuccess] = useState(false);
 
     const available = partner.balance.available;
+    const minWithdrawal = partner.settings?.minimumWithdrawalAmount || 50;
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
@@ -21,6 +22,12 @@ export default function SettlementModal({ partner, onClose, onRefresh }: any) {
         const reqAmount = Number(amount);
         if (reqAmount <= 0) {
             setError('Please enter a valid amount.');
+            setLoading(false);
+            return;
+        }
+
+        if (reqAmount < minWithdrawal) {
+            setError(`Minimum withdrawal is R${minWithdrawal.toFixed(2)}.`);
             setLoading(false);
             return;
         }
@@ -100,7 +107,10 @@ export default function SettlementModal({ partner, onClose, onRefresh }: any) {
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">Withdrawal Amount (R)</label>
+                                    <div className="flex justify-between items-end ml-2 mr-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Withdrawal Amount (R)</label>
+                                        <span className="text-[9px] font-bold text-blue-600 uppercase">Min: R{minWithdrawal.toFixed(2)}</span>
+                                    </div>
                                     <input
                                         type="number"
                                         value={amount}

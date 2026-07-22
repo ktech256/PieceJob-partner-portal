@@ -9,14 +9,35 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
    const [saving, setSaving] = useState(false);
-   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
+   const [formData, setFormData] = useState({
+       name: '',
+       email: '',
+       phone: '',
+       bankName: '',
+       accountHolder: '',
+       accountNumber: '',
+       branchCode: '',
+       accountType: 'Savings',
+       swiftCode: ''
+   });
 
    useEffect(() => {
     const fetchProfile = async () => {
       try {
         const res = await api.get('/affiliate/dashboard');
-        setData(res.data.data);
-        setFormData({ name: res.data.data.name, email: 'entity@partner.com', phone: '' }); // Email/Phone placeholders if not in dashboard response
+        const p = res.data.data;
+        setData(p);
+        setFormData({
+            name: p.name,
+            email: p.email || '',
+            phone: p.phone || '',
+            bankName: p.bankingDetails?.bankName || '',
+            accountHolder: p.bankingDetails?.accountHolder || '',
+            accountNumber: p.bankingDetails?.accountNumber || '',
+            branchCode: p.bankingDetails?.branchCode || '',
+            accountType: p.bankingDetails?.accountType || 'Savings',
+            swiftCode: p.bankingDetails?.swiftCode || ''
+        });
       } catch (err) {
         console.error(err);
       } finally {
@@ -29,10 +50,26 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put('/affiliate/profile', formData);
-      alert('Identity verified and updated in protocol.');
-    } catch (err) {
-      alert('Update failed');
+      // 1. Update Profile Info
+      await api.put('/affiliate/profile', {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone
+      });
+
+      // 2. Update Banking Details
+      await api.put('/affiliate/banking', {
+          bankName: formData.bankName,
+          accountHolder: formData.accountHolder,
+          accountNumber: formData.accountNumber,
+          branchCode: formData.branchCode,
+          accountType: formData.accountType,
+          swiftCode: formData.swiftCode
+      });
+
+      alert('Identity and Banking Protocol verified and updated.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Update failed');
     } finally {
       setSaving(false);
     }
@@ -77,11 +114,37 @@ export default function ProfilePage() {
          {/* RIGHT: CONFIGURATION */}
          <div className="lg:col-span-2 space-y-12">
             <div className="bg-white border border-neutral-100 rounded-[40px] p-10 space-y-10 shadow-sm">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <ProfileInput label="Authorized Name" value={formData.name} onChange={(e: any) => setFormData({...formData, name: e.target.value})} icon={<User size={14} />} />
-                  <ProfileInput label="Workspace Sector" value={data.countryCode} readOnly icon={<Globe size={14} />} />
-                  <ProfileInput label="Email Protocol" value={formData.email} onChange={(e: any) => setFormData({...formData, email: e.target.value})} icon={<Smartphone size={14} />} />
-                  <ProfileInput label="Access Pass" value="••••••••••••" type="password" icon={<Lock size={14} />} />
+               <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-400 border-b border-neutral-50 pb-4 mb-8">Personal Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <ProfileInput label="Authorized Name" value={formData.name} onChange={(e: any) => setFormData({...formData, name: e.target.value})} icon={<User size={14} />} />
+                     <ProfileInput label="Workspace Sector" value={data.countryCode} readOnly icon={<Globe size={14} />} />
+                     <ProfileInput label="Email Protocol" value={formData.email} onChange={(e: any) => setFormData({...formData, email: e.target.value})} icon={<Smartphone size={14} />} />
+                     <ProfileInput label="Contact Signal" value={formData.phone} onChange={(e: any) => setFormData({...formData, phone: e.target.value})} icon={<Smartphone size={14} />} />
+                  </div>
+               </div>
+
+               <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-600 border-b border-blue-50 pb-4 mb-8">Banking Destination</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <ProfileInput label="Bank Name" value={formData.bankName} onChange={(e: any) => setFormData({...formData, bankName: e.target.value})} icon={<Lock size={14} />} />
+                     <ProfileInput label="Account Holder" value={formData.accountHolder} onChange={(e: any) => setFormData({...formData, accountHolder: e.target.value})} icon={<User size={14} />} />
+                     <ProfileInput label="Account Number" value={formData.accountNumber} onChange={(e: any) => setFormData({...formData, accountNumber: e.target.value})} icon={<Lock size={14} />} />
+                     <ProfileInput label="Branch Code" value={formData.branchCode} onChange={(e: any) => setFormData({...formData, branchCode: e.target.value})} icon={<Globe size={14} />} />
+                     <div className="space-y-3">
+                        <label className="text-[9px] font-black uppercase text-neutral-400 ml-1 flex items-center gap-2">Account Type</label>
+                        <select
+                           value={formData.accountType}
+                           onChange={(e: any) => setFormData({...formData, accountType: e.target.value})}
+                           className="w-full bg-neutral-50 border border-neutral-100 rounded-2xl px-6 py-4 text-xs font-black uppercase outline-none focus:border-neutral-900 transition-all"
+                        >
+                           <option value="Savings">Savings</option>
+                           <option value="Cheque">Cheque</option>
+                           <option value="Business">Business</option>
+                        </select>
+                     </div>
+                     <ProfileInput label="SWIFT / BIC (Optional)" value={formData.swiftCode} onChange={(e: any) => setFormData({...formData, swiftCode: e.target.value})} icon={<Globe size={14} />} />
+                  </div>
                </div>
 
                <div className="pt-10 border-t border-neutral-50 flex gap-4">
@@ -111,7 +174,7 @@ export default function ProfilePage() {
   );
 }
 
-function ProfileInput({ label, value, readOnly = false, icon, type = "text" }: any) {
+function ProfileInput({ label, value, readOnly = false, icon, type = "text", onChange }: any) {
   return (
     <div className="space-y-3">
        <label className="text-[9px] font-black uppercase text-neutral-400 ml-1 flex items-center gap-2">
@@ -119,7 +182,8 @@ function ProfileInput({ label, value, readOnly = false, icon, type = "text" }: a
        </label>
        <input
          type={type}
-         defaultValue={value}
+         value={value}
+         onChange={onChange}
          readOnly={readOnly}
          className={`w-full bg-neutral-50 border border-neutral-100 rounded-2xl px-6 py-4 text-xs font-black uppercase outline-none focus:border-neutral-900 transition-all ${readOnly ? 'opacity-40 cursor-not-allowed' : ''}`}
        />
