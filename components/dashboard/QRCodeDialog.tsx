@@ -11,7 +11,27 @@ interface QRCodeDialogProps {
 
 export default function QRCodeDialog({ url, partnerCode, isOpen, onClose }: QRCodeDialogProps) {
   const [downloading, setDownloading] = useState(false);
+  const [logoDataUrl, setLogoDataUrl] = useState<string | undefined>(undefined);
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Pre-load logo as Data URL to prevent Canvas Tainting during HD Export
+  React.useEffect(() => {
+    if (isOpen) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          setLogoDataUrl(canvas.toDataURL("image/png"));
+        }
+      };
+      img.src = "https://piecejob.co/assets/logos/piecejob-logo.png";
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -41,7 +61,7 @@ export default function QRCodeDialog({ url, partnerCode, isOpen, onClose }: QRCo
   };
 
   const logoSettings = {
-    src: "https://piecejob.co/assets/logos/piecejob-logo.png",
+    src: logoDataUrl || "https://piecejob.co/assets/logos/piecejob-logo.png",
     height: 48,
     width: 48,
     excavate: true,
