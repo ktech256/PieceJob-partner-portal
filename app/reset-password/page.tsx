@@ -45,7 +45,7 @@ function ResetPasswordForm() {
         <p className="text-[10px] text-neutral-400 font-bold uppercase mt-2">
           An invalid or missing security token was detected. Please restart the protocol.
         </p>
-        <Link href="/forgot-password" class="inline-flex py-4 px-8 bg-neutral-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest mt-4">
+        <Link href="/forgot-password" className="inline-flex py-4 px-8 bg-neutral-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest mt-4">
            Restart Recovery
         </Link>
       </div>
